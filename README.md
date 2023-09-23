@@ -1,4 +1,4 @@
-# <h1 align="center"> URL Hit Counter </h1>
+# <h1 align="center"> User Managment System With Validation </h1>
 <p align="center">
 <a href="Java url">
 <img alt="Java" src="https://img.shields.io/badge/Java->=8-darkblue.svg" />
@@ -36,6 +36,7 @@ The URL Hit Counter is a simple Spring Boot application that allows you to track
 - **Framework:** Spring Boot
 - **Language:** Java
 - **Build Tool:** Maven
+- **Data Base:** MySQL workbench
 
  
 
@@ -57,10 +58,16 @@ The Controller layer is responsible for handling incoming HTTP requests and dele
 
 ```java
 @RestController
-@RequestMapping("/api/v1/visitor-count-app")
-public class UrlHitController {
+public class UserController {
+
     @Autowired
-    private UrlHitService urlHitService;
+    UserService myUser;
+
+    //adding users
+    @PostMapping("users")
+    public String addUsers(@RequestBody List<User> newUser){
+        return myUser.addNewUser(newUser);
+    }
 
  
 
@@ -75,15 +82,15 @@ public class UrlHitController {
 
  
 
-The Service layer encapsulates the core business logic and data processing. It interacts with the Repository layer to retrieve and store data. In this application, it handles operations like adding visitors, retrieving hit counts, and updating counts for users. The Service layer validates input data and performs necessary operations before returning results to the Controller.
+The Service layer encapsulates the core business logic and data processing. It interacts with the Repository layer to retrieve and store data. In this application, it handles operations like adding, getting, updating, deleting user. The Service layer validates input data and performs necessary operations before returning results to the Controller.
 
  
 
 ```java
 @Service
-public class UrlHitService {
+public class UserService {
     @Autowired
-    private UrlHitRepo urlHitRepo;
+    IUserRepo user;
 
  
 
@@ -98,15 +105,22 @@ public class UrlHitService {
 
  
 
-The Repository layer manages data access to in-memory storage. It maintains a list of `UrlHitCounter` objects to store hit counts for visitors. While this in-memory storage is suitable for a simple application, in a production environment, a database should be used for data persistence.
+The Repository layer manages data access to in-memory storage. It maintains all the data member of user. we have use MySQL as a database for data persistence. We also use the validation dependency to provide some sort of validation like @Email, @Size, @Pattern.
 
  
 
 ```java
-@Repository
-public class UrlHitRepo {
-    @Autowired
-    private List<UrlHitCounter> urlHitCounterList;
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "users")
+public class User {
+
+    @Id
+    private Integer userId;
+
+    private String userName;
 
  
 
@@ -121,7 +135,7 @@ public class UrlHitRepo {
 
  
 
-The URL Hit Counter application utilizes a simple in-memory data structure to store hit counts. In a production environment, it is advisable to replace this in-memory storage with a relational or NoSQL database for better data persistence and scalability.
+The User Managment project is a simple app to store the data in a database(MySQL) so it's a permament data so we don't need to worry about dataloss anymore.
 
  
 
@@ -129,7 +143,7 @@ The URL Hit Counter application utilizes a simple in-memory data structure to st
 
  
 
-The primary data structure used in this application is a `List` of `UrlHitCounter` objects. Each `UrlHitCounter` object represents a visitor and their hit count. This structure allows for easy manipulation of hit counts but is not suitable for long-term data storage.
+The primary data structure used in this application is a `List` of `User` objects. This structure allows for easy manipulation of the data in our database.
 
  
 
@@ -137,9 +151,17 @@ The primary data structure used in this application is a `List` of `UrlHitCounte
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UrlHitCounter {
+@Entity
+@Table(name = "users")
+public class User {
+
+    @Id
+    private Integer userId;
+
     private String userName;
-    private Integer counter;
+.
+.
+.
 }
 ```
 
@@ -151,38 +173,7 @@ public class UrlHitCounter {
 
 ### List
 
- 
 
-The application utilizes the Java `List` data structure to maintain a collection of `UrlHitCounter` objects. This dynamic data structure allows for the storage and retrieval of visitor hit counts. However, please note that this implementation is limited to in-memory storage and is not suitable for persisting data in a production environment.
-
- 
-
-```java
-@Bean
-public List<UrlHitCounter> getUrlHitCounterList(){
-    return new ArrayList<>();
-}
-```
-
- 
-
-### UrlHitCounter Class
-
- 
-
-The `UrlHitCounter` class defines the structure for storing visitor information. It includes two fields: `userName` (to identify the visitor) and `counter` (to track the hit count for that visitor). Instances of this class are used to represent visitors and manage their hit counts.
-
- 
-
-```java
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class UrlHitCounter {
-    private String userName;
-    private Integer counter;
-}
-```
 
  
 
@@ -192,45 +183,50 @@ public class UrlHitCounter {
 
  
 
-### Get Total Hit Count
-- **Endpoint**: `/api/v1/count`
-- **HTTP Method**: GET
-- **Description**: Retrieves the total hit count for the default URL.
-
- 
-
-### Get Hit Count for a Specific User
-- **Endpoint**: `/api/v1/username/{username}/count`
-- **HTTP Method**: GET
-- **Description**: Retrieves the hit count for a specific user identified by `{username}`.
-
- 
-
-### Add a New Visitor
-- **Endpoint**: `/visitor`
+### Post all the users
+- **Endpoint**: `/users`
 - **HTTP Method**: POST
-- **Description**: Adds a new visitor to the system.
+- **Description**: It will add the list of the users in the database.
 
  
 
-### Get All Visitors
-- **Endpoint**: `/visitors`
+### Get user by ids
+- **Endpoint**: `/user/id/{ids}`
 - **HTTP Method**: GET
-- **Description**: Retrieves a list of all visitors and their hit counts.
+- **Description**: Retrieves all the user following their ids.
 
  
 
-### Get the Number of Visitors
-- **Endpoint**: `/visitor/count`
+### Get all the users
+- **Endpoint**: `/users`
 - **HTTP Method**: GET
-- **Description**: Retrieves the total number of visitors.
+- **Description**: Get all the user from database at a time.
 
  
 
-### Increment Hit Count for a Specific User
-- **Endpoint**: `/api/v1/count_update/username/{username}`
+### Put user by id
+- **Endpoint**: `/user/id/{id}`
 - **HTTP Method**: PUT
-- **Description**: Increments the hit count for a specific user identified by `{username}`.
+- **Description**: Update the user following their id.
+
+ 
+
+### Delete user by id
+- **Endpoint**: `/user/id/{id}`
+- **HTTP Method**: DELETE
+- **Description**: Delete the user following their id.
+
+ 
+
+### Delete user by ids
+- **Endpoint**: `/users/ids/{ids}`
+- **HTTP Method**: DELETE
+- **Description**:  Delete all the provided user following their id`.
+
+### Delete user by ids
+- **Endpoint**: `/users`
+- **HTTP Method**: DELETE
+- **Description**:  Delete all the user at a time`.
 
  
 
@@ -238,15 +234,11 @@ public class UrlHitCounter {
 
  
 
-1. Use a tool like [Postman](https://www.postman.com/) to make HTTP requests to the provided endpoints.
+1. Use a tool like [Swagger UI](https://swagger.io/) to make HTTP requests to the provided endpoints.
 
  
 
-2. Create visitors using the "Add a New Visitor" endpoint with a POST request.
-
- 
-
-3. Retrieve hit counts and manage visitors using the provided endpoints.
+2.  Use a tool like [MySQL Workbench](https://www.mysql.com/products/workbench/) to store all the data parmanently.
 
  
 
@@ -260,9 +252,8 @@ The project follows a standard Spring Boot application structure with components
 
 - **Controller:** Handles incoming HTTP requests and defines API endpoints.
 - **Service:** Implements business logic and interacts with the repository.
-- **Repository:** Manages data access and storage.
-- **Entity:** Defines data models.
-- **BeanManager:** Contains Spring bean configurations.
+- **Model:** Defines data models.
+- **repo:** Contains interface to interact with JAP
 
  
 
@@ -270,7 +261,7 @@ The project follows a standard Spring Boot application structure with components
 
  
 
-Visitor hit counts are stored in-memory using a `List`. In a production environment, you should consider using a database for data persistence.
+MySQL Workbench is used for storage.
 
  
 
